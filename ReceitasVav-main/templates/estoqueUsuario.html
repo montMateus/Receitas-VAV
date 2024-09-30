@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% block conteudo %}
+<style>
+    .ui-autocomplete {
+        max-height: 200px;
+        overflow-y: auto;
+        z-index: 1000;
+    }
+</style>
+<script>
+//SCRIPT QUE IRÁ MOSTRAR OS INGREDIENTES CADASTRADOS NO BD, CONFORME O USUÁRIO DIGITA PARA BUSCAR//
+
+function normalizeString(str) {
+    return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+}
+
+$(document).ready(function() {
+    var ingredientesDisponiveis = [
+        {% for ingrediente in ingredientes_no_banco %}
+            "{{ ingrediente.capitalize() }}",
+        {% endfor %}
+    ];
+
+    var isValidIngredient = false;
+
+    $("#ingrediente").autocomplete({
+        source: function(request, response) {
+            var matcher = new RegExp($.ui.autocomplete.escapeRegex(normalizeString(request.term)), "i");
+            response($.grep(ingredientesDisponiveis, function(value) {
+                return matcher.test(normalizeString(value));
+            }));
+        },
+        select: function(event, ui) {
+            $("#ingrediente").val(ui.item.value);
+            isValidIngredient = true;
+            return false;
+        },
+        change: function(event, ui) {
+            if (ui.item == null) {
+                $("#ingrediente").val('');
+                isValidIngredient = false;
+            }
+        }
+    });
+//CASO O USUÁRIO TENTE INSERIR UM INGREDIENTE QUE NÃO ESTÁ PRESENTE NO BD//
+    $("#ingredienteForm").submit(function(event) {
+        if (!isValidIngredient) {
+            alert("Ingrediente não encontrado, por favor selecione um item da lista.");
+            event.preventDefault();
+        }
+    });
+
+    $("#ingrediente").on('input', function() {
+        isValidIngredient = false;
+    });
+});
+</script>
+
+<div class="container-fluid h-100">
+    <div class="row justify-content-center align-items-center h-100">
+        <div class="col-md-6">
+            <form action="/estoque_usuario" method="POST" id="ingredienteForm">
+                <div class="form-group">
+                    <label for="ingrediente">Ingrediente: </label>
+                    <input type="text" class="form-control border-solid border-1 border-amber-400" name="ingrediente" id="ingrediente" placeholder="Digite seu ingrediente">
+                </div>
+                <br>
+                <button type="submit" name="btn" value="adicionar-ingrediente" class="bg-amber-400 text-white rounded-md px-4 py-3 text-sm font-medium hover:bg-amber-500">Adicionar</button>
+                {% if lista_ingredientes %}
+                {% else %}  
+                {% endif %}
+                <br><br>
+                <div class="bg-emerald-300/50" role="alert">
+                    {% for message in get_flashed_messages() %}
+                        {{ message }}
+                    {% endfor %}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<br>
+<div class="container d-flex justify-content-center align-items-center">
+    <div class="card p-8 border-solid border-1 border-amber-400 bg-amber-100" style="width: 20rem;">
+        <center>
+        {% if lista_ingredientes %}
+        <a href="{{ url_for('get_receita_estoque')}}" class="bg-amber-400 text-white rounded-md px-4 py-3 text-sm font-medium hover:bg-amber-500">Ver Receitas com </a>
+        <br><br>
+        {% else %}
+        <h2 class="mb-8 align-items-center">Meus ingredientes:</h2>
+        {% endif %}
+        </center>
+        <ul class="list-group">
+            {% for ingrediente in lista_ingredientes %}
+            <li class="list-group-item d-flex justify-content-between align-items-center border-solid bg-amber-200 border-1 border-amber-400" style="width: 100%;"> 
+                <div class="col-8">
+                    <p class="fw-bolder text-amber-600">{{ ingrediente.capitalize() }}</p>
+                </div>
+                <div class="col-4 text-right">
+                    <form action="{{ url_for('remover_ingrediente')}}" method="POST" style="display:inline;">
+                        <input type="hidden" name="ingrediente_remover" value="{{ ingrediente }}">
+                        <button class="btn btn-danger" type="submit">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </form>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+        <br>
+        {% if not lista_ingredientes %}
+        <p>Nenhum ingrediente foi adicionado</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock conteudo %}

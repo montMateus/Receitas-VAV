@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+{% block conteudo %}
+<form action="/" method="POST" id="pesquisaForm">
+    <input type="text" name="pesquisaReceita" id="pesquisaReceita" placeholder="Pesquisar receita" class="w-full leading-6 px-8">
+</form>
+<style>
+    .ui-autocomplete {
+        max-height: 200px; /* Altura máxima da lista */
+        overflow-y: auto; /* Adiciona rolagem vertical quando necessário */
+        z-index: 1000; /* Certifica-se de que a lista aparece sobre outros elementos */
+    }
+    .custom-img {
+        width: 1900px;  /* Largura desejada */
+        height: 300px;  /* Altura desejada */
+        object-fit: cover;  /* Garante que a imagem cubra a área definida, mantendo sua proporção */ /* Centraliza a imagem */
+    }
+    .grid-container {
+        margin-top: -40px; /* Adiciona margem superior para empurrar para cima */
+    }
+    .grid-item {
+        margin-top: 40px; /* Reduz a margem superior dos itens */
+        transition: transform 0.5s ease; /* Adiciona transição suave */
+        display: none; /* Oculta todos os cards inicialmente */
+    }
+
+    
+    .show { /* Classe para mostrar um card */
+        display: block;
+    }
+</style>
+    <div class="py-8 grid-container">
+        <div class="grid grid-cols-1 gap-x-6 gap-y-10 lg:grid-cols-3 xl:gap-x-8 mx-32">
+            {% for receita in receitas %}
+            <div class="grid-item flex">
+                <div class="overflow-hidden rounded-md hover:opacity-75"> 
+                    <a href="/receita/{{ receita.idReceita }}" class="block"> 
+                        <img src="{{ receita.imagem }}" alt="" class="img-fluid custom-img rounded-lg">
+                    </a>
+                </div>
+                <div class="flex flex-col justify-between">
+                    <div>
+                        <h1 class="text-xl text-center text-gray-700">
+                            {{ receita.nomeReceita }}
+                        </h1>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+
+<script>
+//SCRIPT QUE IRÁ MOSTRAR ALEATORIAMENTE, RECEITAS CADASTRADAS NO BD//
+
+var cards = document.querySelectorAll('.grid-item');
+
+// Escolhe 3 índices aleatórios diferentes para os primeiros cards
+if (cards.length > 0) {
+    var initialIndexes = [];
+    while (initialIndexes.length < 3) {
+        var index = Math.floor(Math.random() * cards.length);
+        if (!initialIndexes.includes(index)) {
+            initialIndexes.push(index);
+        }
+    }
+    initialIndexes.forEach(function(index) {
+        cards[index].classList.add('show');
+    });
+}
+
+setInterval(function() {
+    // Oculta todos os cards
+    cards.forEach(function(card) {
+        card.classList.remove('show');
+    });
+
+    // Escolhe 3 índices aleatórios diferentes para os próximos cards
+    var randomIndexes = [];
+    while (randomIndexes.length < 3) {
+        var randomIndex = Math.floor(Math.random() * cards.length);
+        if (!randomIndexes.includes(randomIndex)) {
+            randomIndexes.push(randomIndex);
+        }
+    }
+
+    // Mostra os cards escolhidos aleatoriamente
+    randomIndexes.forEach(function(index) {
+        cards[index].classList.add('show');
+    });
+}, 5000); // Intervalo de mudança de card de 5 segundos
+
+
+//SCRIPT QUE IRÁ MOSTRAR AS RECEITAS CADASTRADAS NO BD, CONFORME O USUÁRIO DIGITA PARA BUSCAR//
+    $(function() {
+    var availableTags = [
+        {% for receita in receitas %}
+            {
+                label: "{{ receita.nomeReceita.capitalize() }}",
+                value: "/receita/{{ receita.idReceita }}"
+            },
+        {% endfor %}
+    ];
+
+    var isValidRecipe = false;
+
+    $("#pesquisaReceita").autocomplete({
+        source: availableTags,
+        select: function(event, ui) {
+            window.location.href = ui.item.value;
+            $("#pesquisaReceita").value('');
+            isValidRecipe = true;  // Receita selecionada é válida
+        }
+    });
+
+    // Verificar input manual
+    $("#pesquisaReceita").on('input', function() {
+        isValidRecipe = false;
+    });
+
+    // Captura o evento de submit do formulário
+    $("#pesquisaForm").submit(function(event) {
+        if (!isValidRecipe) {
+            alert("Receita não encontrada, por favor selecione um item da lista.");
+            event.preventDefault();
+        }
+    });
+});
+
+</script>
+
+{% endblock conteudo %}

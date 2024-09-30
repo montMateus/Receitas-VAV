@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% block conteudo %}
+<style>
+    .custom-img {
+        width: 300px;  /* Largura desejada */
+        height: 300px;  /* Altura desejada */
+        object-fit: cover;  /* Garante que a imagem cubra a área definida, mantendo sua proporção */
+        object-position: center;  /* Centraliza a imagem */
+    }
+    .grid-container {
+        margin-top: -80px; /* Adiciona margem superior para empurrar para cima */
+    }
+    .grid-item {
+        margin-top: 20px; /* Reduz a margem superior dos itens */
+    }
+</style>
+<div class="mx-auto max-w-2xl px-4 py-8 sm:px-6 sm:py-12 lg:max-w-7xl lg:px-8 grid-container">
+    <div class="mt-6 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4 xl:gap-x-8">
+        {% for receita in receitas %}
+        <div class="relative grid-item">
+            <div class="image-container overflow-hidden rounded-md hover:opacity-75"> <!-- Defina o container apenas para a imagem -->
+                <a href="/receita/{{ receita.idReceita }}"> <!-- Link apenas para a imagem -->
+                    <img src="{{ receita.imagem }}" alt="" class="img-fluid custom-img">
+                </a>
+            </div>
+            <div class="mt-4 flex flex-col justify-between h-full">
+                <div>
+                    <h3 class="text-sm text-gray-700">
+                        {{ receita.nomeReceita }}
+                    </h3>
+                    <p class="mt-1 text-sm text-gray-500">{{ receita.descricao }}</p>
+                </div>            
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+<center>
+    <div class="flex items-center justify-center">
+      {% if receitas.has_prev %}
+        <a href="{{ url_for('get_receita_estoque', page=1) }}" class="bg-gray-200 hover:bg-gray-300 relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 focus:z-20 focus:outline-offset-0"> <<< </a>
+      {% endif %}
+      {% for num in receitas.iter_pages() %}
+        {% if num %}
+          {% if receitas.page == num %}
+            <a href="{{ url_for('get_receita_estoque', page=num) }}" aria-current="page" class="bg-amber-400 relative z-10 inline-flex items-center px-4 py-2 text-sm font-semibold text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">{{ num }}</a>
+          {% else %}
+            <a href="{{ url_for('get_receita_estoque', page=num) }}" class=" hover:bg-gray-200  relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-amber-500 focus:z-20 focus:outline-offset-0">{{ num }}</a>
+          {% endif %}
+        {% else %}
+          <span class="ellipsis">...</span>
+        {% endif %}
+      {% endfor %}
+      {% if receitas.has_next %}
+        <a href="{{ url_for('get_receita_estoque', page=receitas.pages) }}" class="bg-gray-200 hover:bg-gray-300  relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-amber-500 focus:z-20 focus:outline-offset-0"> >>> </a>
+      {% endif %}
+    </div>
+</center>
+{% if lista_ingredientes_invalidos %}
+        <center>
+    <h1 class="mt-5 mb-4">{{ msg }}</h1>
+        <br><br><br><br><br>
+    
+        
+        <a href="/estoque_usuario" class="bg-amber-400 text-white rounded-md px-4 py-3 text-sm font-medium hover:bg-amber-500">Retornar para minha despensa</a>
+        
+    </center>
+{% endif %}
+{% endblock conteudo %}

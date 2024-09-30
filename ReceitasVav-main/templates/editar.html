@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% block conteudo %}
+
+<form style="background-color: #F2F2F2;" action="/editar/{{receita.idReceita}}" method="POST" class="form-control">
+    <div class="mb-3">
+        <label for="nomeReceita">Receita:</label>
+        <input type="text" class="form-control" name="nomeReceita" style="width:20rem" placeholder="Digite o nome de sua receita" value="{{receita.nomeReceita}}" required>
+    </div>
+    <div class="mb-3">
+        <label for="tempo">Tempo de preparo:</label>
+        <input type="text" class="form-control" name="tempo" style="width:20rem" placeholder="Digite o tempo de preparo" value="{{receita.tempo}}" required>
+    </div>
+    <div class="mb-3" id="ingredientesContainer">
+        <label>Ingredientes e Quantidades:</label>
+        <button type="button" class="bg-amber-400 text-white hover:bg-amber-500 rounded-md px-3 py-1 mb-3 text-sm font-medium" onclick="adicionarCampo()"> + </button>
+        {% for ingrediente in receita.ingredientes %}
+        <div class="row mb-3 ingrediente">
+            <div class="col-4">
+                <input type="text" name="ingredientes[]" placeholder="Ingrediente" value="{{ingrediente.nomeIngrediente}}" required class="form-control">
+            </div>
+            <div class="col-4">
+                <input type="text" name="quantidades[]" placeholder="Quantidade" value="{{ingrediente.quantidade}}" required class="form-control">
+            </div>
+            <div class="col-4">
+                <button type="button" class="btn btn-danger" onclick="removerIngrediente(this)">Remover ingrediente</button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <div class="mb-3">
+        <label for="preparo">Modo de preparo:</label>
+        <textarea type="text" class="form-control" name="preparo"  placeholder="Digite o modo de preparo" required rows="10">{{receita.preparo}}</textarea>
+    </div>
+    <div class="mb-3">
+        <label for="preparo">Descricão:</label>
+        <textarea type="text" class="form-control" name="desc" required placeholder="Digite a descrição" rows="4">{{receita.descricao}}</textarea>
+    </div>
+    <div class="mb-3">
+        <label for="imagem">Imagem:</label>
+        <input type="text" class="form-control" name="imagem" value="{{receita.imagem}}" placeholder="Pesquise pelo Google - Clique com o botão direito do mouse sobre a imagem escolhida - copiar endereço - cole o endereço aqui neste campo" required>
+    </div>
+    <button class="rounded-md px-3 py-2 bg-green-500 hover:bg-green-600 m-6" type="submit">Atualizar</button>
+    <a href="/deletar/{{receita.idReceita}}" class="rounded-md px-3 py-2 bg-red-500 hover:bg-red-600 m-6" type="submit">Excluir</a>
+</form>
+
+<script>
+//SCRIPT PARA ADICIONAR CAMPOS DE INGREDIENTE E QUANTIDADE
+    function adicionarCampo() {
+        var container = document.getElementById("ingredientesContainer");
+        var div = document.createElement("div");
+        div.className = "row mb-3 ingrediente";
+        div.innerHTML = `
+            <div class="col-4">
+                <input type="text" name="ingredientes[]" placeholder="Ingrediente" class="form-control" required>
+            </div>
+            <div class="col-4">
+                <input type="text" name="quantidades[]" placeholder="Quantidade" class="form-control" required>
+            </div>
+            <div class="col-4">
+                <button type="button" class="btn btn-danger" onclick="removerIngrediente(this)">Remover ingrediente</button>
+            </div>
+        `;
+        // Obter o botão de adicionar campo
+        var botaoAdicionar = document.querySelector("button[onclick='adicionarCampo()']");
+        // Inserir o novo elemento após o botão de adicionar campo
+        container.insertBefore(div, botaoAdicionar.nextSibling);
+    }
+
+    function removerIngrediente(element) {
+        var ingrediente = element.parentNode.parentNode;
+        ingrediente.parentNode.removeChild(ingrediente);
+    }
+</script>
+
+
+
+{% endblock conteudo %}
